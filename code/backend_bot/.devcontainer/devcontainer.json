@@ -1,0 +1,9 @@
+{
+  "name": "Yatra Bot Dev",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "forwardPorts": [8501],
+  "settings": {},
+  "postCreateCommand": "pip install -r requirements.txt"
+}

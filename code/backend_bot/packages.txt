@@ -1,0 +1,7 @@
+portaudio19-dev
+ffmpeg
+espeak
+espeak-ng-data
+libespeak-ng1
+libespeak1
+git
