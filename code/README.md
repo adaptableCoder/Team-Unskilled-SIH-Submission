@@ -36,3 +36,6 @@ Follow these steps to run the project locally
    ```bash
    npx expo start
    ```
+   
+4. **Run on your device**
+   - Use the Expo Go app on your iOS or Android device to scan the QR code displayed in the terminal.
