@@ -4,7 +4,9 @@ import DetailCard from '@/components/profile/DetailCard';
 import RecentTrip from '@/components/profile/RecentTrip'
 import TripUpdate from '@/components/profile/TripUpdate';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Link } from 'expo-router';
 import { useState, useRef, useEffect } from 'react';
+import { DeviceEventEmitter } from 'react-native';
 import {
   Alert,
   Image,
@@ -85,13 +87,14 @@ const Profile = () => {
   const transportModeUsage = [
     { mode: 'Bus', percentage: 45 },
     { mode: 'Train', percentage: 15 },
-    { mode: 'Auto', percentage: 5 },   
+    { mode: 'Auto', percentage: 5 },
     { mode: 'Metro', percentage: 20 },
     { mode: 'Bike', percentage: 5 },
   ]
 
   const [recentTripsData, setRecentTripsData] = useState([
-    { from: 'Delhi',
+    {
+      from: 'Delhi',
       to: 'Goa',
       departuredate: '22 Sep 2025',
       returndate: '29 Sep 2025',
@@ -105,6 +108,44 @@ const Profile = () => {
       image: require('@/assets/images/recenttripsImage.png')
     }
   ])
+
+  const [upcomingTrips, setUpcomingTrips] = useState<any[]>([])
+
+  const loadUpcoming = async () => {
+    try {
+      const raw = await AsyncStorage.getItem('upcoming_trips')
+      const arr = raw ? JSON.parse(raw) : []
+      setUpcomingTrips(arr)
+    } catch (e) {
+      console.warn('Failed to load upcoming_trips', e)
+    }
+  }
+
+  const deleteTrip = async (tripId: string) => {
+    try {
+      const raw = await AsyncStorage.getItem('upcoming_trips')
+      const trips = raw ? JSON.parse(raw) : []
+      const updatedTrips = trips.filter((trip: any, index: number) => {
+        // Use either provided tripId or index as fallback
+        const id = trip.id || trip.tripId || index.toString()
+        return id !== tripId
+      })
+      await AsyncStorage.setItem('upcoming_trips', JSON.stringify(updatedTrips))
+      setUpcomingTrips(updatedTrips)
+      DeviceEventEmitter.emit('upcoming_trips_updated')
+    } catch (e) {
+      console.warn('Failed to delete trip', e)
+      Alert.alert('Error', 'Failed to delete trip. Please try again.')
+    }
+  }
+
+  useEffect(() => {
+    loadUpcoming()
+    const sub = DeviceEventEmitter.addListener('upcoming_trips_updated', () => {
+      loadUpcoming()
+    })
+    return () => sub.remove()
+  }, [])
 
 
   return (
@@ -175,21 +216,6 @@ const Profile = () => {
                 fromAddress="Dwarka sec-10, Delhi"
                 toAddress="Sec-11,Block 2A, Gurgaon"
                 dateDay="22"
-                date="Sep’25, Monday"
-                tripStartTime="7:00 AM"
-                purpose="Work"
-                tripReturnTime="6pm"
-                returnDate="22 Sep"
-                modeOfTransport="Car"
-              />
-            </View>
-
-            <View style={{ width: cardWidth }}>
-              <TripUpdate
-                heading="Upcoming Trip"
-                fromAddress="Dwarka sec-10, Delhi"
-                toAddress="Sec-11,Block 2A, Gurgaon"
-                dateDay="22"
                 date="Sep'25, Monday"
                 tripStartTime="7:00 AM"
                 purpose="Work"
@@ -198,6 +224,23 @@ const Profile = () => {
                 modeOfTransport="Car"
               />
             </View>
+
+            {upcomingTrips.length === 0 ? (
+              <View style={{ width: cardWidth, marginRight: gap }} className="bg-white rounded-2xl p-6 shadow-md items-center justify-center">
+                <Text className="text-lg font-semibold">No upcoming trips</Text>
+                <Text className="text-sm text-gray-500 mt-2 text-center">You have no upcoming trips yet. Use Add Trip on the Plan Page (AI Trip Planner) to save one.</Text>
+              </View>
+            ) : (
+              upcomingTrips.map((t, idx) => (
+                <View key={idx} style={{ width: cardWidth, marginRight: idx < upcomingTrips.length - 1 ? gap : 0 }}>
+                  <TripUpdate
+                    {...t}
+                    tripId={t.id || t.tripId || idx.toString()}
+                    onDelete={deleteTrip}
+                  />
+                </View>
+              ))
+            )}
           </ScrollView>
         </View>
       </View>
@@ -205,6 +248,17 @@ const Profile = () => {
       <View className='mt-6'>
         <Text className='text-[20px] font-bold'>Travel Analytics</Text>
         <Text className='text-[14px]'>Overview of your travel patterns and statistics</Text>
+        <Link
+          href={'/tripHistory'}
+          className='mt-2'
+          asChild
+        >
+          <TouchableOpacity>
+            <Text className='text-blue-600 font-semibold'>
+              View Past Trips
+            </Text>
+          </TouchableOpacity>
+        </Link>
 
         <View className='flex-row flex-wrap w-full justify-center gap-8 mt-4'>
           {tripsOverviewDetails.map((detail, index) => (
@@ -212,7 +266,7 @@ const Profile = () => {
               <DetailCard
                 heading={detail.heading}
                 value={detail.value}
-                icon={detail.icon}
+                icon={detail.icon as any}
               />
             </View>
           ))}
@@ -220,46 +274,46 @@ const Profile = () => {
       </View>
 
       <View className='flex-col w-[90%] mx-auto mt-6 gap-4'>
-          <Analytics 
+        <Analytics
           heading='Monthly Travel Trends'
           data={monthlyTravelTrends}
-          />
+        />
 
-          <Analytics
+        <Analytics
           heading='Transport Mode Usage'
           data={transportModeUsage}
-          />
+        />
       </View>
 
       <View className='w-[90%] mx-auto mt-6 bg-white rounded-2xl p-4 shadow-md'>
-          <Text className='text-xl font-bold mb-2'>Your Common Routes</Text>
-          <View className='flex-col gap-4'>
-            <View>
-              <Text className='text-base font-medium'>Home-Office</Text>
-              <Text className='text-sm text-gray-500'>85 Trips · Avg: 45mins • ₹120</Text>
-            </View>
-            <View>
-              <Text className='text-base font-medium'>Dwarka Sec-10, Delhi to Sec-11, Block 2A, Gurgaon</Text>
-              <Text className='text-sm text-gray-500'>15 Trips · Avg: 30mins • ₹80</Text>
-            </View>
-            <View>
-              <Text className='text-base font-medium'>Dwarka Sec-10, Delhi to Sec-11, Block 2A, Gurgaon</Text>
-              <Text className='text-sm text-gray-500'>10 Trips · Avg: 25mins • ₹60</Text>
-            </View>
+        <Text className='text-xl font-bold mb-2'>Your Common Routes</Text>
+        <View className='flex-col gap-4'>
+          <View>
+            <Text className='text-base font-medium'>Home-Office</Text>
+            <Text className='text-sm text-gray-500'>85 Trips · Avg: 45mins • ₹120</Text>
           </View>
+          <View>
+            <Text className='text-base font-medium'>Dwarka Sec-10, Delhi to Sec-11, Block 2A, Gurgaon</Text>
+            <Text className='text-sm text-gray-500'>15 Trips · Avg: 30mins • ₹80</Text>
+          </View>
+          <View>
+            <Text className='text-base font-medium'>Dwarka Sec-10, Delhi to Sec-11, Block 2A, Gurgaon</Text>
+            <Text className='text-sm text-gray-500'>10 Trips · Avg: 25mins • ₹60</Text>
+          </View>
+        </View>
       </View>
 
       <View className='flex-col w-[90%] mx-auto mt-8 mb-10 bg-white rounded-2xl p-4 shadow-md items-center'>
-          <Text className='text-2xl font-bold mb-2'>Your Recent Trips</Text>
-          <ScrollView 
-          horizontal 
+        <Text className='text-2xl font-bold mb-2'>Your Recent Trips</Text>
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}>
-              <View className='flex-row gap-4 pb-4'>
-                {recentTripsData.map((trip, index) => (
-                  <RecentTrip tripData={trip} key={index} />
-                ))}
-              </View>
-          </ScrollView>
+          <View className='flex-row gap-4 pb-4'>
+            {recentTripsData.map((trip, index) => (
+              <RecentTrip tripData={trip} key={index} />
+            ))}
+          </View>
+        </ScrollView>
       </View>
     </ScrollView>
   );

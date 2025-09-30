@@ -1,6 +1,6 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Logo from '@/assets/images/logo.svg';
 import ConsentScreen from './consentscreen';
@@ -29,16 +29,16 @@ export default function AuthScreen({ onLoginSuccess }: { onLoginSuccess?: () => 
 	const [loading, setLoading] = useState(false);
 
 	// On mount, check if consent is already accepted
-	useState(() => {
-		(async () => {
-			const consent = await AsyncStorage.getItem(CONSENT_KEY);
-			if (consent === 'true') {
-				setShowConsent(false);
-			} else {
-				setShowConsent(true);
-			}
-		})();
-	});
+		useEffect(() => {
+			(async () => {
+				const consent = await AsyncStorage.getItem(CONSENT_KEY);
+				if (consent === 'true') {
+					setShowConsent(false);
+				} else {
+					setShowConsent(true);
+				}
+			})();
+		}, []);
 
 	const handleChange = (key: keyof typeof form, value: string) => {
 		setForm({ ...form, [key]: value });
@@ -222,7 +222,7 @@ export default function AuthScreen({ onLoginSuccess }: { onLoginSuccess?: () => 
 		return (
 			<View style={styles.container}>
 				<Logo width={200} height={200} style={styles.logo} />
-				<Text style={styles.title}>Let's Get Started!</Text>
+				<Text style={styles.title}>Let{"'"}s Get Started!</Text>
 				<Text style={styles.subtitle}>Create an Account on YATRA</Text>
 				<TextInput style={styles.input} placeholder="Username" placeholderTextColor="#222" value={form.username} onChangeText={t => handleChange('username', t)} />
 				<TextInput style={styles.input} placeholder="First Name" placeholderTextColor="#222" value={form.firstName} onChangeText={t => handleChange('firstName', t)} />
@@ -250,7 +250,7 @@ export default function AuthScreen({ onLoginSuccess }: { onLoginSuccess?: () => 
 			<Text style={{ marginVertical: 12, textAlign: 'center' }}>Or sign up using</Text>
 			<View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 16 }}>
 			</View>
-			<Text style={styles.bottomText}>Don't have an account? <Text style={styles.link} onPress={() => setIsLogin(false)}>Sign Up</Text></Text>
+			<Text style={styles.bottomText}>Don{"'"}t have an account? <Text style={styles.link} onPress={() => setIsLogin(false)}>Sign Up</Text></Text>
 		</View>
 	);
 }

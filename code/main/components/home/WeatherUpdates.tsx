@@ -1,15 +1,15 @@
-import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Image, ScrollView, Text, View, TextInput, Pressable, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
+import { LinearGradient } from 'expo-linear-gradient'
+import { Image, ScrollView, Text, View, TextInput, Pressable, ActivityIndicator } from 'react-native'
 import { useSelector } from 'react-redux'
-import { selectAddress } from '../store/slices/permissionsSlice'
-import type { RootState } from '../store/store'
+import { selectAddress } from '@/store/slices/permissionsSlice'
+import type { RootState } from '@/store/store'
 import { useEffect, useState } from 'react'
 import * as Location from 'expo-location'
-import MapFallback from '../map-components/MapFallback'
+import MapFallback from '@/map-components/MapFallback'
 
-export default function WeatherUpdatesPage() {
+export default function WeatherUpdates() {
   const address = useSelector((state: RootState) => selectAddress(state))
   const currentLocation = useSelector((state: RootState) => state.permissions.currentLocation)
 
@@ -25,7 +25,6 @@ export default function WeatherUpdatesPage() {
   // Map Open-Meteo weather codes to Ionicons names (simplified)
   function getWeatherIcon(code: number | undefined) {
     if (code == null) return 'cloudy'
-    // Codes reference: https://open-meteo.com/en/docs
     if (code === 0) return 'sunny'
     if (code === 1 || code === 2 || code === 3) return 'partly-sunny'
     if (code >= 45 && code <= 48) return 'cloudy'
@@ -39,13 +38,11 @@ export default function WeatherUpdatesPage() {
     if (!searchQuery || searchQuery.trim().length === 0) return
     try {
       setSearching(true)
-      // Use expo-location geocode to resolve query to coords
       const results = await Location.geocodeAsync(searchQuery)
       if (results && results.length > 0) {
         const r = results[0]
         setSearchCoords({ lat: r.latitude, lon: r.longitude })
       } else {
-        // no results — optional: clear coords
         setSearchCoords(null)
       }
     } catch (err) {
@@ -55,17 +52,15 @@ export default function WeatherUpdatesPage() {
     }
   }
 
-  // Fetch weather when location changes (either current location or searched coords)
   useEffect(() => {
     let mounted = true
     const lat = searchCoords ? searchCoords.lat : currentLocation ? currentLocation.coords.latitude : undefined
     const lon = searchCoords ? searchCoords.lon : currentLocation ? currentLocation.coords.longitude : undefined
     if (lat == null || lon == null) return
 
-    (async () => {
+    ;(async () => {
       try {
         setWeatherLoading(true)
-        // Request hourly + daily fields for weekly forecast (max/min temps, precipitation sum, weathercode)
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=temperature_2m,precipitation&daily=temperature_2m_max,temperature_2m_min,precipitation_sum,weathercode&timezone=auto`
         const r = await fetch(url)
         const d = await r.json()
@@ -96,7 +91,6 @@ export default function WeatherUpdatesPage() {
 
           if (results && results.length > 0) {
             const r = results[0]
-            // Compose structured parts
             const firstParts: string[] = []
             if (r.name && r.name !== r.city) firstParts.push(r.name)
             if (r.street) firstParts.push(r.street)
@@ -140,13 +134,12 @@ export default function WeatherUpdatesPage() {
 
   return (
     <ScrollView className="flex-1 bg-[#FFF1EF]" contentContainerStyle={{ flexGrow: 1 }}>
-      <View className="px-6 mt-16 flex-row items-center gap-3">
+      <View className="px-6 flex-row items-center gap-3">
         <Ionicons name="cloudy" size={28} />
         <Text className="text-3xl font-extrabold">Live Weather Updates</Text>
       </View>
 
       <View className="mt-4 flex-col items-center justify-between">
-        {/* Search bar placed above the map as a normal block */}
         <View style={{ width: '100%', paddingHorizontal: 12, marginBottom: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: 12, paddingHorizontal: 10, paddingVertical: 8 }}>
             <TextInput
@@ -180,7 +173,7 @@ export default function WeatherUpdatesPage() {
             />
           ) : (
             <Image
-              source={require('../assets/images/map.png')}
+              source={require('@/assets/images/map.png')}
               style={{ width: '100%', height: '100%' }}
               resizeMode="cover"
             />
@@ -211,13 +204,10 @@ export default function WeatherUpdatesPage() {
 
         <View className="flex-row items-center justify-between w-full px-8">
           <View className="max-w-[76%]">
-            {/* First line: large normal text */}
             <Text className="text-xl mt-1">{addressParts.firstLine || locationTitle}</Text>
-            {/* City: next line smaller */}
             {addressParts.city ? (
               <Text className="text-base text-gray-600">{addressParts.city}</Text>
             ) : null}
-            {/* Country: smallest and bold */}
             {addressParts.country ? (
               <Text className="text-sm font-bold text-gray-900">{addressParts.country}</Text>
             ) : null}
@@ -229,9 +219,7 @@ export default function WeatherUpdatesPage() {
         </View>
       </View>
 
-      {/* Forecast section */}
       <BlurView intensity={25} tint="dark" style={{ borderRadius: 24,  overflow: 'hidden', marginTop: 20 }}>
-        {/* Tabs */}
         <View className="overflow-hidden border border-white/5">
           <View className="flex-row py-2">
             <Pressable className="flex-1 items-center py-3" onPress={() => setActiveTab('hourly')}>
@@ -245,11 +233,9 @@ export default function WeatherUpdatesPage() {
         </View>
 
         <View className="rounded-b-3xl">
-          {/* Horizontal scroll of forecast cards (hourly or weekly) */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="py-3 px-2" contentContainerStyle={{ paddingRight: 8 }}>
             {activeTab === 'hourly' ? (
               weatherData && weatherData.hourly && Array.isArray(weatherData.hourly.time) ? (
-                // Build a small set of hourly items from the hourly arrays (take next 6)
                 weatherData.hourly.time.slice(0, 6).map((t: string, idx: number) => {
                   const temp = weatherData.hourly.temperature_2m?.[idx]
                   const label = idx === 0 ? 'Now' : new Date(t).getHours() + ':00'
@@ -268,7 +254,6 @@ export default function WeatherUpdatesPage() {
                   )
                 })
               ) : (
-                // fallback static cards
                 [
                   { time: 'Now', temp: '29°', chance: '10%' , key: 'now' },
                   { time: '12 AM', temp: '26°', chance: '20%' , key: '12am' },
@@ -289,9 +274,7 @@ export default function WeatherUpdatesPage() {
                 ))
               )
             ) : (
-              // Weekly tab
               weatherData && weatherData.daily && Array.isArray(weatherData.daily.time) ? (
-                // Map each day (up to 7)
                 weatherData.daily.time.slice(0, 7).map((d: string, idx: number) => {
                   const maxT = weatherData.daily.temperature_2m_max?.[idx]
                   const minT = weatherData.daily.temperature_2m_min?.[idx]
@@ -316,7 +299,6 @@ export default function WeatherUpdatesPage() {
                   )
                 })
               ) : (
-                // fallback weekly cards
                 [
                   { day: 'Mon', max: '30°', min: '22°', precip: '5mm', key: 'm' },
                   { day: 'Tue', max: '29°', min: '21°', precip: '2mm', key: 't' },
@@ -341,7 +323,6 @@ export default function WeatherUpdatesPage() {
             )}
           </ScrollView>
 
-        {/* Bottom summary inside main container */}
           <Text className="pl-4 mt-4 text-4xl font-extrabold">{weatherData && weatherData.current_weather ? `${Math.round(weatherData.current_weather.temperature)}°` : '29°C'} <Text className="text-2xl">Now</Text></Text>
           <Text className="pl-4 pb-4 mb-4 text-lg">{weatherData && weatherData.current_weather ? `Wind ${Math.round(weatherData.current_weather.windspeed)} km/h` : 'Light showers'}</Text>
         </View>

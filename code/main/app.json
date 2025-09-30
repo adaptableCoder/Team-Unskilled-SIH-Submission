@@ -2,7 +2,7 @@
   "expo": {
     "name": "yatra",
     "slug": "yatra",
-    "version": "2.0.0",
+    "version": "2.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "yatra",
@@ -11,7 +11,10 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
+        "UIBackgroundModes": ["location"],
         "NSLocationWhenInUseUsageDescription": "Yatra uses your location to automatically detect your current city and provide better travel suggestions.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Yatra needs background location access to track your journey even when the app is closed. This enables automatic trip recording and emergency features.",
+        "NSLocationAlwaysUsageDescription": "Yatra tracks your location in the background to provide continuous trip monitoring and safety features.",
         "NSCameraUsageDescription": "Yatra uses your camera to scan QR codes and capture travel moments.",
         "NSMicrophoneUsageDescription": "Yatra uses your microphone for voice search and audio recording features.",
         "NSPhotoLibraryUsageDescription": "Yatra needs access to your photo library to save and share your travel memories.",
@@ -30,11 +33,14 @@
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
         "CAMERA",
         "RECORD_AUDIO",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
-        "READ_CONTACTS"
+        "READ_CONTACTS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "package": "unskilled.sih.yatra"
     },
@@ -67,6 +73,7 @@
       "eas": {
         "projectId": "286ba346-e7ef-4543-ab6a-3e6ae723968c"
       }
-    }
+    },
+    "owner": "kislay04"
   }
 }

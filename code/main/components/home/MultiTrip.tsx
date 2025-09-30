@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 import Calendar from '@/components/Calendar'
 import AddMember from '@/components/home/AddMember'
-import { Link } from 'expo-router'
+import { Link, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 
 // Modal (default export) and canonical LocationItem type from hooks
@@ -17,6 +17,8 @@ import LocationPickerModal from "@/components/cityInputModal";
 import type { LocationItem } from "@/hooks/fetchCities";
 import { useFetch } from "@/hooks/useFetch";
 import { fetchCities } from "@/hooks/fetchCities";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DeviceEventEmitter } from 'react-native';
 
 type CityEntry = {
   to: string
@@ -27,6 +29,26 @@ type CityEntry = {
 const MIN_CITIES = 2
 
 const MultiTrip = ({ locationAddress }: { locationAddress: string | null }) => {
+  // Generate a session ID for temporary trip planning
+  const [sessionId] = useState(() => Date.now().toString() + Math.random().toString(36).substr(2, 9))
+
+  // Transfer images from session to final trip
+  const transferSessionImages = async (fromSessionId: string, toTripId: string) => {
+    try {
+      const sessionImagesStr = await AsyncStorage.getItem(`trip_images_${fromSessionId}`)
+      if (sessionImagesStr) {
+        const sessionImages = JSON.parse(sessionImagesStr)
+        if (sessionImages.length > 0) {
+          await AsyncStorage.setItem(`trip_images_${toTripId}`, sessionImagesStr)
+          // Clean up session images
+          await AsyncStorage.removeItem(`trip_images_${fromSessionId}`)
+        }
+      }
+    } catch (error) {
+      console.error('Error transferring session images:', error)
+    }
+  }
+  const router = useRouter()
   // Core trip state
   const [startingPoint, setStartingPoint] = useState(locationAddress || 'Select Location')
   const [numCities, setNumCities] = useState<number>(MIN_CITIES)
@@ -315,6 +337,55 @@ const MultiTrip = ({ locationAddress }: { locationAddress: string | null }) => {
     await new Promise(res => setTimeout(res, 600))
     Alert.alert('Trip added', 'Your multi-city trip was added successfully.')
 
+    // persist upcoming trip for profile page (use first city as a representative)
+    try {
+      const firstCity = cities[0] || { to: '', arrivalDate: '' }
+      // derive display date from first city's arrivalDate or returnDate
+      const dateSource = firstCity.arrivalDate || returnDate || ''
+      const d = dateSource ? new Date(dateSource) : null
+      let day = ''
+      let dateDisplay = ''
+      if (d) {
+        const month = d.toLocaleDateString('en-US', { month: 'short' })
+        const year = d.toLocaleDateString('en-US', { year: '2-digit' })
+        day = d.toLocaleDateString('en-US', { day: 'numeric' })
+        dateDisplay = `${month}\u2019${year}`
+      }
+      const tripId = Date.now().toString() + Math.random().toString(36).substr(2, 9)
+      
+      // Transfer session images to the final trip
+      await transferSessionImages(sessionId, tripId)
+      
+      const tripObj = {
+        id: tripId,
+        heading: 'Upcoming Trip',
+        fromAddress: startingPoint,
+        toAddress: firstCity.to || '',
+        dateDay: day,
+        date: dateDisplay,
+        tripStartTime: '',
+        purpose: purpose || '',
+        tripReturnTime: '',
+        returnDate: returnDate || '',
+        modeOfTransport: '',
+        __raw: {
+          cities,
+          returnDate,
+          noOfPassengers,
+          passengerDetails,
+          purpose,
+          startingPoint,
+        }
+      }
+      const raw = await AsyncStorage.getItem('upcoming_trips')
+      const arr = raw ? JSON.parse(raw) : []
+      arr.unshift(tripObj)
+      await AsyncStorage.setItem('upcoming_trips', JSON.stringify(arr))
+      DeviceEventEmitter.emit('upcoming_trips_updated')
+    } catch (e) {
+      console.warn('Failed to save upcoming trip', e)
+    }
+
     // reset
     setStartingPoint(locationAddress || 'Select Location')
     setNumCities(MIN_CITIES)
@@ -506,7 +577,7 @@ const MultiTrip = ({ locationAddress }: { locationAddress: string | null }) => {
         </Text>
 
         <View className='flex-row gap-7 mt-3'>
-          <Link href="/hotel-booking">
+          <TouchableOpacity onPress={() => router.push(`/camera?headerTitle=Capture%20ticket%20%2F%20booking%20reference&headerSubtitle=Please%20take%20a%20clear%20photo%20of%20your%20hotel%20booking.&tripId=${sessionId}&imageType=hotel`)}>
             <View className='flex-col items-center justify-center'>
               <View
                 className='p-4 bg-white rounded-xl border border-gray-200'
@@ -522,9 +593,9 @@ const MultiTrip = ({ locationAddress }: { locationAddress: string | null }) => {
               </View>
               <Text className='text-[12px] font-medium mt-2'>Hotels</Text>
             </View>
-          </Link>
+          </TouchableOpacity>
 
-          <Link href="/flight-ticket">
+          <TouchableOpacity onPress={() => router.push(`/camera?headerTitle=Capture%20ticket%20%2F%20booking%20reference&headerSubtitle=Please%20take%20a%20clear%20photo%20of%20your%20flight%20ticket.&tripId=${sessionId}&imageType=flight`)}>
             <View className='flex-col items-center justify-center'>
               <View
                 className='p-4 bg-white rounded-xl border border-gray-200'
@@ -540,9 +611,9 @@ const MultiTrip = ({ locationAddress }: { locationAddress: string | null }) => {
               </View>
               <Text className='text-[12px] font-medium mt-2'>Flights</Text>
             </View>
-          </Link>
+          </TouchableOpacity>
 
-          <Link href="/train-ticket">
+          <TouchableOpacity onPress={() => router.push(`/camera?headerTitle=Capture%20ticket%20%2F%20booking%20reference&headerSubtitle=Please%20take%20a%20clear%20photo%20of%20your%20train%20ticket.&tripId=${sessionId}&imageType=train`)}>
             <View className=' flex-col items-center justify-center'>
               <View
                 className='p-4 bg-white rounded-xl border border-gray-200'
@@ -558,15 +629,21 @@ const MultiTrip = ({ locationAddress }: { locationAddress: string | null }) => {
               </View>
               <Text className='text-[12px] font-medium mt-2'>Trains</Text>
             </View>
-          </Link>
+          </TouchableOpacity>
         </View>
 
       </View>
 
-        {/* Submit button */}
-        <TouchableOpacity onPress={onSubmit} disabled={isSubmitting} className="bg-[#6B6BFF] w-[90%] mx-auto mt-4 rounded-full py-4 items-center">
-          {isSubmitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-semibold">Add Trip</Text>}
-        </TouchableOpacity>
+        {/* Submit / Plan buttons */}
+        <View className="w-[90%] mx-auto mt-4 flex-row gap-3">
+          <TouchableOpacity onPress={onSubmit} disabled={isSubmitting} className="flex-1 bg-[#6B6BFF] rounded-full py-4 items-center">
+            {isSubmitting ? <ActivityIndicator color="white" /> : <Text className="text-white font-semibold">Add Trip</Text>}
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.push('/plan')} disabled={isSubmitting} className="flex-1 bg-white border border-gray-300 rounded-full py-4 items-center">
+            <Text className="text-[#374151] font-semibold">Plan Trip</Text>
+          </TouchableOpacity>
+        </View>
 
         {typeof errors.submit === 'string' && errors.submit.length > 0 ? (
           <Text className="text-red-600 text-center mt-2">{errors.submit}</Text>

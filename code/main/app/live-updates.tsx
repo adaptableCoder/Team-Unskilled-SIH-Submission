@@ -51,18 +51,6 @@ const LiveUpdates = () => {
             </TouchableOpacity>
           </View>
         </View>
-
-        {/* Item 3 */}
-        <View className="flex-row items-start gap-4">
-          <NumberBadge n={3} />
-          <View className="flex-1">
-            <Text className="text-xl font-bold">Weather updates & Warnings</Text>
-            <Text className="text-md text-gray-500 mt-1">Excessive Rain, Potential Flooding in your area</Text>
-            <TouchableOpacity className="mt-3 items-start" onPress={() => router.push('/weather-updates')}>
-              <Text className="text-pink-500 font-semibold">See Live Weather Updates</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
       </View>
     </ScrollView>
   )

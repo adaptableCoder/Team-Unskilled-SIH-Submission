@@ -1,5 +1,4 @@
-// screens/OneWay.tsx
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,7 +6,9 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { Link } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DeviceEventEmitter } from 'react-native';
+import { useRouter } from "expo-router";
 import AddMember from "@/components/home/AddMember";
 import Calendar from "@/components/Calendar";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,23 +19,52 @@ import type { LocationItem } from "@/hooks/fetchCities";
 import { useFetch } from "@/hooks/useFetch";
 import { fetchCities } from "@/hooks/fetchCities";
 
-type Props = {
+const OneWay = ({
+  locationAddress
+}: {
   locationAddress: string | null;
-};
+}) => {
+  // Generate a session ID for temporary trip planning
+  const [sessionId] = useState(() => Date.now().toString() + Math.random().toString(36).substr(2, 9))
 
-const OneWay = ({ locationAddress }: Props) => {
+  // Transfer images from session to final trip
+  const transferSessionImages = async (fromSessionId: string, toTripId: string) => {
+    try {
+      const sessionImagesStr = await AsyncStorage.getItem(`trip_images_${fromSessionId}`)
+      if (sessionImagesStr) {
+        const sessionImages = JSON.parse(sessionImagesStr)
+        if (sessionImages.length > 0) {
+          await AsyncStorage.setItem(`trip_images_${toTripId}`, sessionImagesStr)
+          // Clean up session images
+          await AsyncStorage.removeItem(`trip_images_${fromSessionId}`)
+        }
+      }
+    } catch (error) {
+      console.error('Error transferring session images:', error)
+    }
+  }
+  const router = useRouter()
   // core states
-  const [travelMethod, settravelMethod] = useState("oneWay");
   const [calenderVisible, setcalenderVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState("");
   const [noOfPassengers, setNoOfPassengers] = useState(1);
   const [purpose, setpurpose] = useState("");
   const [purposeOptionsOpen, setPurposeOptionsOpen] = useState(false);
+  const [modeOfTransport, setModeOfTransport] = useState("");
+  const [transportOptionsOpen, setTransportOptionsOpen] = useState(false);
 
   const purposeOptions = [
     { label: "Work", value: "work" },
     { label: "Education", value: "education" },
     { label: "Leisure", value: "leisure" },
+  ];
+
+  const transportOptions = [
+    { label: "Flight", value: "flight", icon: "airplane-outline" },
+    { label: "Train", value: "train", icon: "train-outline" },
+    { label: "Bus/Metro", value: "bus", icon: "bus-outline" },
+    { label: "Car", value: "car", icon: "car-outline" },
+    { label: "Bike/Scooter", value: "bike", icon: "bicycle-outline" },
   ];
 
   // starting point & destination
@@ -52,6 +82,7 @@ const OneWay = ({ locationAddress }: Props) => {
     destination?: string | null;
     selectedDate?: string | null;
     purpose?: string | null;
+    modeOfTransport?: string | null;
     passengerDetails?: { name?: string | null; userId?: string | null }[];
     submit?: string | null;
   }>({});
@@ -148,6 +179,10 @@ const OneWay = ({ locationAddress }: Props) => {
       nextErrors.purpose = "Please select purpose of trip";
       hasError = true;
     }
+    if (!modeOfTransport) {
+      nextErrors.modeOfTransport = "Please select mode of transport";
+      hasError = true;
+    }
 
     if (passengerDetails.length > 0) {
       passengerDetails.forEach((p, idx) => {
@@ -173,7 +208,48 @@ const OneWay = ({ locationAddress }: Props) => {
 
     // mimic server processing
     await new Promise((res) => setTimeout(res, 600));
-    Alert.alert("Trip added", "Your trip details were added successfully.");
+    Alert.alert("Trip added", "Your trip details are added in your profile.");
+
+    // persist upcoming trip for profile page (append to upcoming_trips list)
+    try {
+      const { day, month, year, weekday } = formatDisplayDate(selectedDate);
+      const dateDisplay = `${month}\u2019${year}, ${weekday}`;
+      const tripId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+      
+      // Transfer session images to the final trip
+      await transferSessionImages(sessionId, tripId);
+      
+      const tripObj = {
+        id: tripId, // Generate unique ID
+        heading: 'Upcoming Trip',
+        fromAddress: startingPoint,
+        toAddress: destination,
+        dateDay: day,
+        date: dateDisplay,
+        tripStartTime: '',
+        purpose: purpose || '',
+        tripReturnTime: '',
+        returnDate: '',
+        modeOfTransport: modeOfTransport || '',
+        __raw: {
+          selectedDate,
+          noOfPassengers,
+          passengerDetails,
+          purpose,
+          modeOfTransport,
+          startingPoint,
+          destination,
+        }
+      };
+  const raw = await AsyncStorage.getItem('upcoming_trips');
+  const arr = raw ? JSON.parse(raw) : [];
+  arr.unshift(tripObj);
+  await AsyncStorage.setItem('upcoming_trips', JSON.stringify(arr));
+  // emit update so profile can refresh immediately
+  DeviceEventEmitter.emit('upcoming_trips_updated');
+    } catch (e) {
+      console.warn('Failed to save upcoming trip', e);
+    }
 
     // reset
     setcalenderVisible(false);
@@ -181,6 +257,8 @@ const OneWay = ({ locationAddress }: Props) => {
     setNoOfPassengers(1);
     setpurpose("");
     setPurposeOptionsOpen(false);
+    setModeOfTransport("");
+    setTransportOptionsOpen(false);
     setstartingPoint(locationAddress || "Select Location");
     setPassengerDetails([]);
     setDestination("Select Destination");
@@ -193,10 +271,11 @@ const OneWay = ({ locationAddress }: Props) => {
       selectedDate: null,
       selectedReturnDate: null,
       purpose: null,
+      modeOfTransport: null,
       passengerDetails: [],
       submit: null
     }))
-  }, [startingPoint, destination, selectedDate, purpose, passengerDetails, locationAddress]);
+  }, [startingPoint, destination, selectedDate, purpose, passengerDetails, locationAddress, modeOfTransport]);
 
   // -------------------------
   // Location picker modal handling
@@ -346,6 +425,58 @@ const OneWay = ({ locationAddress }: Props) => {
         </View>
       )}
 
+      {/* Mode of Transport */}
+      <View className="w-[95%] mx-auto mt-4 bg-[#ECECEC] rounded-2xl shadow">
+        <TouchableOpacity
+          onPress={() => {
+            setTransportOptionsOpen(!transportOptionsOpen);
+            setErrors(prev => ({ ...prev, modeOfTransport: null }));
+          }}
+          className={`px-4 py-3.5 flex-row items-center justify-between ${transportOptionsOpen ? "border-b border-gray-300" : ""}`}
+        >
+          <View className="flex-1">
+            <Text className="text-base font-semibold text-gray-700">Mode of Transport</Text>
+            <View className="flex-row items-center mt-1">
+              {modeOfTransport && (
+                <Ionicons 
+                  name={transportOptions.find(opt => opt.value === modeOfTransport)?.icon as any || "help-outline"} 
+                  size={16} 
+                  color="#6B6BFF" 
+                  style={{ marginRight: 6 }}
+                />
+              )}
+              <Text className="text-sm text-gray-500">
+                {modeOfTransport ? transportOptions.find((opt) => opt.value === modeOfTransport)?.label : "Select transport mode"}
+              </Text>
+            </View>
+          </View>
+          <Ionicons name={transportOptionsOpen ? "chevron-up-outline" : "chevron-down-outline"} size={18} color="#6B6BFF" />
+        </TouchableOpacity>
+
+        {errors.modeOfTransport ? <Text className="text-red-600 text-xs ml-4 mt-1">{errors.modeOfTransport}</Text> : null}
+
+        {transportOptionsOpen && (
+          <View className="bg-white rounded-b-lg overflow-hidden">
+            {transportOptions.map((option, index) => (
+              <TouchableOpacity
+                key={option.value}
+                onPress={() => {
+                  setModeOfTransport(option.value);
+                  setTransportOptionsOpen(false);
+                  setErrors(prev => ({ ...prev, modeOfTransport: null }));
+                }}
+                className={`py-4 px-5 flex-row items-center ${modeOfTransport === option.value ? "bg-gray-50" : "bg-white"} ${index < transportOptions.length - 1 ? "border-b border-gray-100" : ""}`}
+              >
+                <Ionicons name={option.icon as any} size={20} color={modeOfTransport === option.value ? "#6B6BFF" : "#6B7280"} />
+                <Text className={`text-base ml-3 ${modeOfTransport === option.value ? "font-semibold text-blue-600" : "font-medium text-gray-700"}`}>
+                  {option.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
+
       {/* Purpose */}
       <View className="w-[95%] mx-auto mt-4 bg-[#ECECEC] rounded-2xl shadow">
         <TouchableOpacity
@@ -389,7 +520,7 @@ const OneWay = ({ locationAddress }: Props) => {
         </Text>
 
         <View className='flex-row gap-7 mt-3'>
-          <Link href="/hotel-booking">
+          <TouchableOpacity onPress={() => router.push(`/camera?headerTitle=Capture%20ticket%20%2F%20booking%20reference&headerSubtitle=Please%20take%20a%20clear%20photo%20of%20your%20hotel%20booking.&tripId=${sessionId}&imageType=hotel`)}>
             <View className='flex-col items-center justify-center'>
               <View
                 className='p-4 bg-white rounded-xl border border-gray-200'
@@ -405,9 +536,9 @@ const OneWay = ({ locationAddress }: Props) => {
               </View>
               <Text className='text-[12px] font-medium mt-2'>Hotels</Text>
             </View>
-          </Link>
+          </TouchableOpacity>
 
-          <Link href="/flight-ticket">
+          <TouchableOpacity onPress={() => router.push(`/camera?headerTitle=Capture%20ticket%20%2F%20booking%20reference&headerSubtitle=Please%20take%20a%20clear%20photo%20of%20your%20flight%20ticket.&tripId=${sessionId}&imageType=flight`)}>
             <View className='flex-col items-center justify-center'>
               <View
                 className='p-4 bg-white rounded-xl border border-gray-200'
@@ -423,9 +554,9 @@ const OneWay = ({ locationAddress }: Props) => {
               </View>
               <Text className='text-[12px] font-medium mt-2'>Flights</Text>
             </View>
-          </Link>
+          </TouchableOpacity>
 
-          <Link href="/train-ticket">
+          <TouchableOpacity onPress={() => router.push(`/camera?headerTitle=Capture%20ticket%20%2F%20booking%20reference&headerSubtitle=Please%20take%20a%20clear%20photo%20of%20your%20train%20ticket.&tripId=${sessionId}&imageType=train`)}>
             <View className=' flex-col items-center justify-center'>
               <View
                 className='p-4 bg-white rounded-xl border border-gray-200'
@@ -441,19 +572,29 @@ const OneWay = ({ locationAddress }: Props) => {
               </View>
               <Text className='text-[12px] font-medium mt-2'>Trains</Text>
             </View>
-          </Link>
+          </TouchableOpacity>
         </View>
 
       </View>
 
-      {/* Submit */}
-      <TouchableOpacity
-        onPress={onSubmit}
-        disabled={isSubmitting}
-        className="bg-[#6B6BFF] w-[90%] mx-auto mt-6 rounded-full py-4 shadow flex-row justify-center items-center"
-      >
-        {isSubmitting ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-medium text-[15px]">Add Trip</Text>}
-      </TouchableOpacity>
+      {/* Submit / Plan buttons: two side-by-side */}
+      <View className="w-[90%] mx-auto mt-6 flex-row gap-3">
+        <TouchableOpacity
+          onPress={onSubmit}
+          disabled={isSubmitting}
+          className="flex-1 bg-[#6B6BFF] rounded-full py-4 shadow flex-row justify-center items-center"
+        >
+          {isSubmitting ? <ActivityIndicator size="small" color="white" /> : <Text className="text-white font-medium text-[15px]">Add Trip</Text>}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => router.push('/plan')}
+          disabled={isSubmitting}
+          className="flex-1 bg-white border border-gray-300 rounded-full py-4 shadow flex-row justify-center items-center"
+        >
+          <Text className="text-[#374151] font-medium text-[15px]">Plan Trip</Text>
+        </TouchableOpacity>
+      </View>
 
       {errors.submit ? <Text className="text-red-600 text-center mt-2">{errors.submit}</Text> : null}
 

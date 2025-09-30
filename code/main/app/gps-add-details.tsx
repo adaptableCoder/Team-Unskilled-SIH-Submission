@@ -30,7 +30,7 @@ export default function GPSaddDetails() {
         <Ionicons name="location-outline" size={32} color="black" />
         <View className="flex-1 flex-col items-start justify-center">
           <Text className="text-3xl font-extrabold text-gray-900">GPS Tracking</Text>
-          <Text className="text-sm text-gray-600 leading-tight">Track your location to ensure your location's saved to ensure your safety at all times</Text>
+          <Text className="text-sm text-gray-600 leading-tight">Track your location to ensure your location{"'"}s saved to ensure your safety at all times</Text>
         </View>
       </View>
 

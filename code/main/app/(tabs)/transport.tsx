@@ -66,7 +66,7 @@ const Transport = () => {
               <Text className="font-medium">Choose from gallery</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => router.push('/camera')} className="rounded-full bg-pink-500 flex-row items-center justify-center gap-3 p-3 mt-4">
+            <TouchableOpacity onPress={() => router.push('/camera?headerTitle=Capture%20vehicle%20number%20plate&headerSubtitle=Please%20take%20a%20clear%20photo%20of%20the%20vehicle%20number%20plate.&imageType=vehicle')} className="rounded-full bg-pink-500 flex-row items-center justify-center gap-3 p-3 mt-4">
               <Ionicons name="camera" size={22} color="#fff" />
               <Text className="text-white">Capture from Camera</Text>
             </TouchableOpacity>

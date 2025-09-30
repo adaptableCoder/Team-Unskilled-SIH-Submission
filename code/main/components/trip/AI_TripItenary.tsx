@@ -178,7 +178,7 @@ const AI_TripItenary = ({ onClose }: Props) => {
           
           <View className="flex-row justify-around">
             <TouchableOpacity 
-              onPress={() => router.push('/hotel-booking')}
+              onPress={() => router.push('/camera?headerTitle=Capture%20ticket%20%2F%20booking%20reference&headerSubtitle=Please%20take%20a%20clear%20photo%20of%20your%20hotel%20booking.&imageType=hotel')}
               className="items-center bg-pink-50 rounded-xl p-3 flex-1 mr-2"
             >
               <Ionicons name="bed" size={24} color="#FF6EC7" />
@@ -186,7 +186,7 @@ const AI_TripItenary = ({ onClose }: Props) => {
             </TouchableOpacity>
             
             <TouchableOpacity 
-              onPress={() => router.push('/flight-ticket')}
+              onPress={() => router.push('/camera?headerTitle=Capture%20ticket%20%2F%20booking%20reference&headerSubtitle=Please%20take%20a%20clear%20photo%20of%20your%20flight%20ticket.&imageType=flight')}
               className="items-center bg-pink-50 rounded-xl p-3 flex-1 mx-1"
             >
               <Ionicons name="airplane" size={24} color="#FF6EC7" />
@@ -194,7 +194,7 @@ const AI_TripItenary = ({ onClose }: Props) => {
             </TouchableOpacity>
             
             <TouchableOpacity 
-              onPress={() => router.push('/train-ticket')}
+              onPress={() => router.push('/camera?headerTitle=Capture%20ticket%20%2F%20booking%20reference&headerSubtitle=Please%20take%20a%20clear%20photo%20of%20your%20train%20ticket.&imageType=train')}
               className="items-center bg-pink-50 rounded-xl p-3 flex-1 ml-2"
             >
               <Ionicons name="train" size={24} color="#FF6EC7" />

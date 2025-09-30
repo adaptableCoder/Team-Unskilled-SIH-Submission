@@ -6,7 +6,7 @@ import { requestRecordingPermissionsAsync } from 'expo-audio'
 import * as Contacts from 'expo-contacts'
 
 // Define permission types
-export type PermissionType = 'location' | 'camera' | 'mediaLibrary' | 'microphone' | 'contacts'
+export type PermissionType = 'location' | 'backgroundLocation' | 'camera' | 'mediaLibrary' | 'microphone' | 'contacts'
 
 export interface PermissionStatus {
   granted: boolean
@@ -23,6 +23,7 @@ export interface PermissionsState {
   error: string | null
   permissions: {
     location: PermissionStatus | null
+    backgroundLocation: PermissionStatus | null
     camera: PermissionStatus | null
     mediaLibrary: PermissionStatus | null
     microphone: PermissionStatus | null
@@ -40,6 +41,7 @@ const initialState: PermissionsState = {
   error: null,
   permissions: {
     location: null,
+    backgroundLocation: null,
     camera: null,
     mediaLibrary: null,
     microphone: null,
@@ -56,9 +58,24 @@ export const requestAllPermissions = createAsyncThunk(
       // Request permissions one by one with better error handling
       console.log('Starting permission requests...')
       
-      // Location permission
+      // Location permission (foreground)
       const locationResult = await Location.requestForegroundPermissionsAsync()
       console.log('Location permission result:', locationResult)
+      
+      // Background location permission (only if foreground granted)
+      let backgroundLocationResult: Location.PermissionResponse = { 
+        status: Location.PermissionStatus.DENIED, 
+        canAskAgain: false, 
+        expires: 'never',
+        granted: false
+      }
+      if (locationResult.status === 'granted') {
+        console.log('Foreground location granted, requesting background location...')
+        backgroundLocationResult = await Location.requestBackgroundPermissionsAsync()
+        console.log('Background location permission result:', backgroundLocationResult)
+      } else {
+        console.log('Foreground location not granted, skipping background location request')
+      }
       
       // Camera permission
       const cameraResult = await Camera.requestCameraPermissionsAsync()
@@ -78,6 +95,12 @@ export const requestAllPermissions = createAsyncThunk(
           canAskAgain: locationResult.canAskAgain,
           expires: locationResult.expires,
           status: locationResult.status
+        },
+        backgroundLocation: {
+          granted: backgroundLocationResult.status === 'granted',
+          canAskAgain: backgroundLocationResult.canAskAgain,
+          expires: backgroundLocationResult.expires,
+          status: backgroundLocationResult.status
         },
         camera: {
           granted: cameraResult.status === 'granted',
@@ -263,6 +286,7 @@ export const selectPermissionsLoading = (state: { permissions: PermissionsState 
 export const selectShowPermissionModal = (state: { permissions: PermissionsState }) => state.permissions.showPermissionModal
 export const selectPermissionsError = (state: { permissions: PermissionsState }) => state.permissions.error
 export const selectLocationPermission = (state: { permissions: PermissionsState }) => state.permissions.permissions.location
+export const selectBackgroundLocationPermission = (state: { permissions: PermissionsState }) => state.permissions.permissions.backgroundLocation
 export const selectCameraPermission = (state: { permissions: PermissionsState }) => state.permissions.permissions.camera
 export const selectMediaLibraryPermission = (state: { permissions: PermissionsState }) => state.permissions.permissions.mediaLibrary
 export const selectMicrophonePermission = (state: { permissions: PermissionsState }) => state.permissions.permissions.microphone

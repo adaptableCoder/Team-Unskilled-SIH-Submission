@@ -17,6 +17,8 @@ import RoundTrip from '@/components/home/RoundTrip'
 import MultiTrip from '@/components/home/MultiTrip'
 import { Ionicons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import WeatherUpdates from '@/components/home/WeatherUpdates'
+import LocationTrackingMap from '@/components/home/LocationTrackingMap'
 
 const Home = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -55,7 +57,7 @@ const Home = () => {
       const result = await dispatch(requestAllPermissions()).unwrap()
       console.log('Permission request result:', result)
 
-      // Check if ALL essential permissions are granted
+      // Check if ALL essential permissions are granted (backgroundLocation is optional)
       const allPermissionsGranted =
         result.permissions.location.granted &&
         result.permissions.camera.granted &&
@@ -188,8 +190,8 @@ const Home = () => {
               <View className="flex-row items-center bg-[#F8FAFC] p-3 rounded-lg border-l-4 border-l-blue-500">
                 <Text className="text-2xl mr-3">📍</Text>
                 <View className="flex-1">
-                  <Text className="text-base font-semibold text-[#1F2937]">Location</Text>
-                  <Text className="text-sm text-[#6B7280]">Auto-detect your city for better travel suggestions</Text>
+                  <Text className="text-base font-semibold text-[#1F2937]">Location & Background Tracking</Text>
+                  <Text className="text-sm text-[#6B7280]">Auto-detect your city and track journeys even when app is closed</Text>
                 </View>
               </View>
 
@@ -284,71 +286,18 @@ const Home = () => {
             <LinearGradient colors={['transparent', '#FFF1EF']} className="absolute bottom-0 left-0 right-0 h-20" />
           </ImageBackground>
         </View>
-
-        <View className='bg-white w-[90vw] mx-auto flex flex-col  rounded-xl mt-4 py-4 px-6 shadow'>
-          <Text className='font-bold text-3xl'>Trip Tracking</Text>
-
-          <View className='flex-row mt-4 justify-between rounded-2xl p-3'>
-
-            <View className='flex-row items-center '>
-              <ExpoCheckbox value={travelMethod === "oneWay"} onValueChange={() => settravelMethod("oneWay")} color="#6B6BFF" style={{ width: 24, height: 24, marginRight: 4, borderRadius: 100 }} />
-              <Text className='font-medium text-md'>One Way</Text>
-            </View>
-
-            <View className='flex-row items-center '>
-              <ExpoCheckbox value={travelMethod === "roundTrip"} onValueChange={() => settravelMethod("roundTrip")} color="#6B6BFF" style={{ width: 24, height: 24, marginRight: 4, borderRadius: 100 }} />
-              <Text className='font-medium text-md'>Round Trip</Text>
-            </View>
-
-            <View className='flex-row items-center '>
-              <ExpoCheckbox value={travelMethod === "multiCity"} onValueChange={() => settravelMethod("multiCity")} color="#6B6BFF" style={{ width: 24, height: 24, marginRight: 4, borderRadius: 100 }} />
-              <Text className='font-medium text-md'>Multi City</Text>
-            </View>
-          </View>
-          
-          {travelMethod === "oneWay" && (
-            <OneWay locationAddress={locationAddress} />
-          )}
-
-          {travelMethod === "roundTrip" && (
-            <RoundTrip locationAddress={locationAddress} />
-          )}
-
-
-          {travelMethod === "multiCity" && (
-            <MultiTrip locationAddress={locationAddress} />
-          )}
-
-        </View>
         
         {/* Smart GPS Tracking */}
-        <View className='bg-white w-[90vw] mx-auto flex flex-col  rounded-xl mt-6 py-8 px-6 shadow'>
-          <Text className='font-bold text-2xl mb-3 text-[#6B6BFF]'>Smart GPS Tracking</Text>
-
-          <View className='mt-2 flex-col mb-4'>
-            <Text className='font-bold text-xl mb-2'>Trip Start detected</Text>
-            <View className="ml-1">
-              <Text className='font-semibold text-xl leading-tight'>{"18 Sep'25 at 7am"}</Text>
-              <Text className='font-normal text-lg leading-tight'>From: Dwarka, Sector-10, New Delhi</Text>
-              <Text className='font-normal text-lg leading-tight'>Mode of Transport: Car</Text>
-            </View>
-          </View>
-
-          <View className='mt-2 flex-col'>
-            <Text className='font-bold text-xl mb-2'>Trip to Work?</Text>
-            <View className="ml-1">
-              <Text className='font-normal text-lg leading-tight'>Gurgaon, Sector-21A</Text>
-            </View>
-          </View>
-
-          <View className='flex-row justify-between items-center mt-3 mx-auto gap-3'>
-            <TouchableOpacity className='bg-[#6B6BFF] rounded-2xl flex-col justify-center items-center px-6 py-2 shadow'>
-              <Text className='text-center text-white font-medium text-xl'>Correct</Text>
-            </TouchableOpacity>
-            <TouchableOpacity className='bg-[#F1F1F1] rounded-2xl flex-col justify-center items-center px-6 py-2 border border-black/10' onPress={() => router.push('/gps-add-details')}>
-              <Text className='text-center text-black font-medium text-xl'>No, add details</Text>
-            </TouchableOpacity>
-          </View>
+        <View className='bg-white w-[90vw] mx-auto flex flex-col rounded-xl mt-6 py-6 px-6 shadow'>
+          <Text className='font-bold text-2xl mb-4 text-[#6B6BFF]'>Smart GPS Tracking</Text>
+          
+          {/* Location Tracking Map */}
+          <LocationTrackingMap height={250} />
+        </View>
+        
+        {/* Weather updates component (converted from page) */}
+        <View className="mt-6 w-[90vw] mx-auto">
+          <WeatherUpdates />
         </View>
         
         {/* Past Trips & AI Trip Planner */}
@@ -384,7 +333,7 @@ const Home = () => {
 
         <Text className="mt-6 text-2xl font-bold">Suggested for you</Text>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4 w-[90vw] mx-auto py-4 mb-10">
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4 w-[90vw] mx-auto py-4 mb-3">
           {card_details.map((c, i) => (
             <ExploreCard key={i} image={c.image} heading={c.heading} subtitle={c.subtitle} onPress={() => { }} />
           ))}

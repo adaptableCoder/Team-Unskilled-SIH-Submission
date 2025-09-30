@@ -27,7 +27,7 @@ export default function ConsentScreen({ onConsent }: { onConsent: () => void }) 
 						{'\n'}3. Microphone: The app may use your microphone for voice input, audio recording, or communication features.
 						{'\n'}4. System Speaker Access: The app may access your device’s speakers for audio playback, notifications, and communication.
 						{'\n'}5. Personal Contacts: The app may access your contacts to enable communication, sharing, and social features.
-						{'\n'}By checking the box and clicking "I Agree," you confirm that:
+						{'\n'}By checking the box and clicking I Agree you confirm that:
 					</Text>
 					<Text style={[styles.bullet, { fontSize: isSmallScreen ? 13 : 15 }]}>• You voluntarily consent to share the above information and grant access to your device’s features.</Text>
 					<Text style={[styles.bullet, { fontSize: isSmallScreen ? 13 : 15 }]}>• You understand that this information will be used only for providing app services and improving functionality.</Text>

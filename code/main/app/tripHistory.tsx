@@ -3,7 +3,7 @@ import { useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import TripUpdate from '@/components/profile/TripUpdate';
 
-const tripHistory = () => {
+const TripHistory = () => {
     const [userId, setUserId] = useState('Jaymishra@1207');
     const handleLogout = async () => {
         await AsyncStorage.removeItem('jwt');
@@ -128,4 +128,4 @@ const tripHistory = () => {
     )
 }
 
-export default tripHistory
+export default TripHistory

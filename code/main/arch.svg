@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="426pt" height="720pt"
+ viewBox="0.00 0.00 426.25 720.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(0.93 0.93) rotate(0) translate(4 773)">
+<title>YatraAppArchitecture</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-773 456,-773 456,4 -4,4"/>
+
+<!-- Mobile App -->
+<g id="node1" class="node">
+<title>MobileApp</title>
+<polygon fill="#cce5ff" stroke="black" points="452,-769 0,-769 0,-611 452,-611 452,-769"/>
+<text text-anchor="middle" x="226" y="-753.8" font-family="Times,serif" font-size="14.00">📱 Mobile App (React Native + Expo)</text>
+<text text-anchor="middle" x="226" y="-738.8" font-family="Times,serif" font-size="14.00">- ConsentScreen (GDPR-compliant)</text>
+<text text-anchor="middle" x="226" y="-723.8" font-family="Times,serif" font-size="14.00">- TripForm (Trip#, origin, time, mode, destination, travelers)</text>
+<text text-anchor="middle" x="226" y="-708.8" font-family="Times,serif" font-size="14.00">- Auto-Detection (GPS, motion sensors)</text>
+<text text-anchor="middle" x="226" y="-693.8" font-family="Times,serif" font-size="14.00">- AI Nudges for missing fields</text>
+<text text-anchor="middle" x="226" y="-678.8" font-family="Times,serif" font-size="14.00">- Map View (trip path, crime/disaster alerts)</text>
+<text text-anchor="middle" x="226" y="-663.8" font-family="Times,serif" font-size="14.00">- Notifications (weather, disaster, SOS)</text>
+<text text-anchor="middle" x="226" y="-648.8" font-family="Times,serif" font-size="14.00">- Translator (multi-language)</text>
+<text text-anchor="middle" x="226" y="-633.8" font-family="Times,serif" font-size="14.00">- Emergency SOS &amp; Contacts</text>
+<text text-anchor="middle" x="226" y="-618.8" font-family="Times,serif" font-size="14.00">- Optional: Hotel/Flight/Train booking modules</text>
+</g>
+
+<!-- Middleware -->
+<g id="node2" class="node">
+<title>Middleware</title>
+<polygon fill="#d5f5e3" stroke="black" points="387.5,-575 64.5,-575 64.5,-447 387.5,-447 387.5,-575"/>
+<text text-anchor="middle" x="226" y="-559.8" font-family="Times,serif" font-size="14.00">⚙️ Middleware (State &amp; Services)</text>
+<text text-anchor="middle" x="226" y="-544.8" font-family="Times,serif" font-size="14.00">- Redux/Context API for state management</text>
+<text text-anchor="middle" x="226" y="-529.8" font-family="Times,serif" font-size="14.00">- APIs for travel data collection</text>
+<text text-anchor="middle" x="226" y="-514.8" font-family="Times,serif" font-size="14.00">- Recommendation &amp; Notification Engine</text>
+<text text-anchor="middle" x="226" y="-499.8" font-family="Times,serif" font-size="14.00">- Voice Input (SpeechRecognition)</text>
+<text text-anchor="middle" x="226" y="-484.8" font-family="Times,serif" font-size="14.00">- Text-to-Speech (pyttsx3)</text>
+<text text-anchor="middle" x="226" y="-469.8" font-family="Times,serif" font-size="14.00">- PDF Exporter (FPDF)</text>
+<text text-anchor="middle" x="226" y="-454.8" font-family="Times,serif" font-size="14.00">- Secure API communication</text>
+</g>
+
+<!-- MobileApp->Middleware -->
+<g id="edge1" class="edge">
+<title>MobileApp-&gt;Middleware</title>
+<path fill="none" stroke="black" d="M226,-610.85C226,-602.36 226,-593.73 226,-585.3"/>
+<polygon fill="black" stroke="black" points="229.5,-585.13 226,-575.13 222.5,-585.13 229.5,-585.13"/>
+</g>
+
+<!-- Backend -->
+<g id="node3" class="node">
+<title>Backend</title>
+<polygon fill="#fdebd0" stroke="black" points="418,-411 34,-411 34,-268 418,-268 418,-411"/>
+<text text-anchor="middle" x="226" y="-395.8" font-family="Times,serif" font-size="14.00">🗄 Backend &amp; Data Processing</text>
+<text text-anchor="middle" x="226" y="-380.8" font-family="Times,serif" font-size="14.00">- Data Ingestion (UnstructuredURLLoader)</text>
+<text text-anchor="middle" x="226" y="-365.8" font-family="Times,serif" font-size="14.00">- Document Processing (CharacterTextSplitter)</text>
+<text text-anchor="middle" x="226" y="-350.8" font-family="Times,serif" font-size="14.00">- Embedding Generation (HuggingFace)</text>
+<text text-anchor="middle" x="226" y="-335.8" font-family="Times,serif" font-size="14.00">- Vector Store (ChromaDB)</text>
+<text text-anchor="middle" x="226" y="-320.8" font-family="Times,serif" font-size="14.00">- Retrieval for semantic search</text>
+<text text-anchor="middle" x="226" y="-305.8" font-family="Times,serif" font-size="14.00">- LLM Engine (ChatGroq) for trip recommendations</text>
+<text text-anchor="middle" x="226" y="-290.8" font-family="Times,serif" font-size="14.00">- Summarizer (DistilBART) for reports</text>
+<text text-anchor="middle" x="226" y="-275.8" font-family="Times,serif" font-size="14.00">- Analytics dashboard for NATPAC scientists</text>
+</g>
+
+<!-- Middleware->Backend -->
+<g id="edge2" class="edge">
+<title>Middleware-&gt;Backend</title>
+<path fill="none" stroke="black" d="M226,-446.88C226,-438.5 226,-429.8 226,-421.17"/>
+<polygon fill="black" stroke="black" points="229.5,-421.08 226,-411.08 222.5,-421.08 229.5,-421.08"/>
+</g>
+
+<!-- Database -->
+<g id="node4" class="node">
+<title>Database</title>
+<polygon fill="#f9e79f" stroke="black" points="394,-232 58,-232 58,-149 394,-149 394,-232"/>
+<text text-anchor="middle" x="226" y="-216.8" font-family="Times,serif" font-size="14.00">💾 Database (NATPAC Server)</text>
+<text text-anchor="middle" x="226" y="-201.8" font-family="Times,serif" font-size="14.00">- Stores encrypted trip data</text>
+<text text-anchor="middle" x="226" y="-186.8" font-family="Times,serif" font-size="14.00">- Accessible to NATPAC scientists</text>
+<text text-anchor="middle" x="226" y="-171.8" font-family="Times,serif" font-size="14.00">- Secure, scalable, GDPR-compliant</text>
+<text text-anchor="middle" x="226" y="-156.8" font-family="Times,serif" font-size="14.00">- Supports query &amp; trip chain reconstruction</text>
+</g>
+
+<!-- Backend->Database -->
+<g id="edge3" class="edge">
+<title>Backend-&gt;Database</title>
+<path fill="none" stroke="black" d="M226,-267.58C226,-259.01 226,-250.4 226,-242.2"/>
+<polygon fill="black" stroke="black" points="229.5,-242.08 226,-232.08 222.5,-242.08 229.5,-242.08"/>
+</g>
+
+<!-- Deployment -->
+<g id="node5" class="node">
+<title>Deployment</title>
+<polygon fill="#f5b7b1" stroke="black" points="395,-113 57,-113 57,0 395,0 395,-113"/>
+<text text-anchor="middle" x="226" y="-97.8" font-family="Times,serif" font-size="14.00">☁️ Deployment &amp; Security</text>
+<text text-anchor="middle" x="226" y="-82.8" font-family="Times,serif" font-size="14.00">- Dockerized backend</text>
+<text text-anchor="middle" x="226" y="-67.8" font-family="Times,serif" font-size="14.00">- Hosting: Streamlit Cloud / NATPAC infra</text>
+<text text-anchor="middle" x="226" y="-52.8" font-family="Times,serif" font-size="14.00">- HTTPS/TLS secure transmission</text>
+<text text-anchor="middle" x="226" y="-37.8" font-family="Times,serif" font-size="14.00">- Consent enforcement before data collection</text>
+<text text-anchor="middle" x="226" y="-22.8" font-family="Times,serif" font-size="14.00">- Anonymization for analytics</text>
+<text text-anchor="middle" x="226" y="-7.8" font-family="Times,serif" font-size="14.00">- Offline support (caching trip data)</text>
+</g>
+
+<!-- Database->Deployment -->
+<g id="edge4" class="edge">
+<title>Database-&gt;Deployment</title>
+<path fill="none" stroke="black" d="M226,-148.82C226,-140.76 226,-132.11 226,-123.46"/>
+<polygon fill="black" stroke="black" points="229.5,-123.34 226,-113.34 222.5,-123.34 229.5,-123.34"/>
+</g>
+
+</g>
+</svg>
