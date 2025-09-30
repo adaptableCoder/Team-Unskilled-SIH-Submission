@@ -21,7 +21,7 @@ NATPAC is into transportation planning but accurate data collection is a tideous
 ## Project Links
 
 - **SIH Presentation:** [Final SIH Presentation](https://github.com/adaptableCoder/Team-Unskilled-SIH-Submission/blob/main/files/Internal_PPT_Unskilled.pdf)
-- **Video Demonstration:** [Watch Video](https://youtu.be/6-G3IjaYvUs?si=7tpTER83uTeJo2cM)
-- **Live Deployment:** [APK download link](https://expo.dev/accounts/prajalgoel/projects/yatra/builds/e4536ac9-51a9-448a-ae57-4042e0744c53)
+- **Video Demonstration:** [Watch Video](https://youtu.be/z33z-Fp-KsY?si=zrfFCOOZqXcdmtY5)
+- **Live Deployment:** [APK download link](https://expo.dev/accounts/adaptablecoder/projects/yatra/builds/320fe4c1-94e3-4e08-99f2-9f9418995899)
 - **Source Code:** [GitHub Repository](https://github.com/adaptableCoder/Team-Unskilled-SIH-Submission.git)
 - **Additional Resources:** None
