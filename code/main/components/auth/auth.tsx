@@ -1,7 +1,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Logo from '@/assets/images/logo.svg';
 import ConsentScreen from './consentscreen';
 
@@ -49,7 +49,7 @@ export default function AuthScreen({ onLoginSuccess }: { onLoginSuccess?: () => 
 	const handleLogin = async () => {
 		setLoading(true);
 		try {
-			const formBody = `username=${encodeURIComponent(form.username)}&password=${encodeURIComponent(form.password)}`;
+			const formBody = `username=${encodeURIComponent(form.username.trim())}&password=${encodeURIComponent(form.password.trim())}`;
 			const res = await fetch(`${API_URL}/auth/auth/login`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -167,12 +167,12 @@ export default function AuthScreen({ onLoginSuccess }: { onLoginSuccess?: () => 
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
-					username: form.username,
-					password: form.password,
-					firstName: form.firstName,
-					lastName: form.lastName,
-					email: form.email,
-					contact: form.contact,
+					username: form.username.trim(),
+					password: form.password.trim(),
+					firstName: form.firstName.trim(),
+					lastName: form.lastName.trim(),
+					email: form.email.trim(),
+					contact: form.contact.trim(),
 					clientId,
 				}),
 			});
@@ -224,14 +224,21 @@ export default function AuthScreen({ onLoginSuccess }: { onLoginSuccess?: () => 
 				<Logo width={200} height={200} style={styles.logo} />
 				<Text style={styles.title}>Let{"'"}s Get Started!</Text>
 				<Text style={styles.subtitle}>Create an Account on YATRA</Text>
-				<TextInput style={styles.input} placeholder="Username" placeholderTextColor="#222" value={form.username} onChangeText={t => handleChange('username', t)} />
-				<TextInput style={styles.input} placeholder="First Name" placeholderTextColor="#222" value={form.firstName} onChangeText={t => handleChange('firstName', t)} />
-				<TextInput style={styles.input} placeholder="Last Name" placeholderTextColor="#222" value={form.lastName} onChangeText={t => handleChange('lastName', t)} />
-				<TextInput style={styles.input} placeholder="Email" placeholderTextColor="#222" value={form.email} onChangeText={t => handleChange('email', t)} />
-				<TextInput style={styles.input} placeholder="Contact number" placeholderTextColor="#222" value={form.contact} onChangeText={t => handleChange('contact', t)} />
-				<TextInput style={styles.input} placeholder="Password" placeholderTextColor="#222" value={form.password} onChangeText={t => handleChange('password', t)} secureTextEntry />
-				<TouchableOpacity style={styles.button} onPress={handleRegister} disabled={loading}>
-					<Text style={styles.buttonText}>Create</Text>
+				<TextInput style={[styles.input, loading && styles.inputDisabled]} placeholder="Username" placeholderTextColor="#222" value={form.username} onChangeText={t => handleChange('username', t)} editable={!loading} />
+				<TextInput style={[styles.input, loading && styles.inputDisabled]} placeholder="First Name" placeholderTextColor="#222" value={form.firstName} onChangeText={t => handleChange('firstName', t)} editable={!loading} />
+				<TextInput style={[styles.input, loading && styles.inputDisabled]} placeholder="Last Name" placeholderTextColor="#222" value={form.lastName} onChangeText={t => handleChange('lastName', t)} editable={!loading} />
+				<TextInput style={[styles.input, loading && styles.inputDisabled]} placeholder="Email" placeholderTextColor="#222" value={form.email} onChangeText={t => handleChange('email', t)} editable={!loading} />
+				<TextInput style={[styles.input, loading && styles.inputDisabled]} placeholder="Contact number" placeholderTextColor="#222" value={form.contact} onChangeText={t => handleChange('contact', t)} editable={!loading} />
+				<TextInput style={[styles.input, loading && styles.inputDisabled]} placeholder="Password" placeholderTextColor="#222" value={form.password} onChangeText={t => handleChange('password', t)} secureTextEntry editable={!loading} />
+				<TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleRegister} disabled={loading}>
+					{loading ? (
+						<View style={styles.loadingContainer}>
+							<ActivityIndicator size="small" color="#fff" style={styles.loadingSpinner} />
+							<Text style={styles.buttonText}>Creating Account ......</Text>
+						</View>
+					) : (
+						<Text style={styles.buttonText}>Create</Text>
+					)}
 				</TouchableOpacity>
 				<Text style={styles.bottomText}>Already have an account? <Text style={styles.link} onPress={() => setIsLogin(true)}>Login</Text></Text>
 			</View>
@@ -242,10 +249,17 @@ export default function AuthScreen({ onLoginSuccess }: { onLoginSuccess?: () => 
 		<View style={styles.container}>
 			<Logo width={200} height={200} style={styles.logo} />
 			<Text style={styles.title}>Login to your YATRA Account</Text>
-			<TextInput style={styles.input} placeholder="Username" placeholderTextColor="#222" value={form.username} onChangeText={t => handleChange('username', t)} />
-			<TextInput style={styles.input} placeholder="Password" placeholderTextColor="#222" value={form.password} onChangeText={t => handleChange('password', t)} secureTextEntry />
-			<TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
-				<Text style={styles.buttonText}>Login</Text>
+			<TextInput style={[styles.input, loading && styles.inputDisabled]} placeholder="Username" placeholderTextColor="#222" value={form.username} onChangeText={t => handleChange('username', t)} editable={!loading} />
+			<TextInput style={[styles.input, loading && styles.inputDisabled]} placeholder="Password" placeholderTextColor="#222" value={form.password} onChangeText={t => handleChange('password', t)} secureTextEntry editable={!loading} />
+			<TouchableOpacity style={[styles.button, loading && styles.buttonDisabled]} onPress={handleLogin} disabled={loading}>
+				{loading ? (
+					<View style={styles.loadingContainer}>
+						<ActivityIndicator size="small" color="#fff" style={styles.loadingSpinner} />
+						<Text style={styles.buttonText}>Signing In ......</Text>
+					</View>
+				) : (
+					<Text style={styles.buttonText}>Login</Text>
+				)}
 			</TouchableOpacity>
 			<Text style={{ marginVertical: 12, textAlign: 'center' }}>Or sign up using</Text>
 			<View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 16 }}>
@@ -261,8 +275,12 @@ const styles = StyleSheet.create({
 	title: { fontSize: 20, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' },
 	subtitle: { fontSize: 14, color: '#444', marginBottom: 16, textAlign: 'center' },
 	input: { width: 280, height: 44, borderWidth: 1, borderColor: '#ddd', borderRadius: 22, paddingHorizontal: 16, marginBottom: 12, backgroundColor: '#ffffff', color: '#000000' },
+	inputDisabled: { backgroundColor: '#f5f5f5', borderColor: '#e0e0e0', color: '#999' },
 	button: { width: 200, height: 44, backgroundColor: '#6C63FF', borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginVertical: 12, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 2 },
+	buttonDisabled: { backgroundColor: '#a0a0a0', shadowOpacity: 0.05 },
 	buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+	loadingContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+	loadingSpinner: { marginRight: 8 },
 	forgot: { color: '#6C63FF', alignSelf: 'flex-end', marginRight: 32, marginBottom: 8 },
 	link: { color: '#000', fontWeight: 'bold' },
 	bottomText: { marginTop: 16, fontSize: 14 },
